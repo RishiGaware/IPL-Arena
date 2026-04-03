@@ -1,0 +1,123 @@
+[
+  {
+    "teamA": "210",
+    "teamB": "208",
+    "venue": "M. Chinnaswamy Stadium, Bengaluru",
+    "matchStartTime": "2026-03-28T19:30:00Z"
+  },
+  {
+    "teamA": "204",
+    "teamB": "206",
+    "venue": "Wankhede Stadium, Mumbai",
+    "matchStartTime": "2026-03-29T19:30:00Z"
+  },
+  {
+    "teamA": "201",
+    "teamB": "209",
+    "venue": "Barsapara Stadium, Guwahati",
+    "matchStartTime": "2026-03-30T19:30:00Z"
+  },
+  {
+    "teamA": "203",
+    "teamB": "207",
+    "venue": "Maharaja Yadavindra Singh International Cricket Stadium, Mullanpur",
+    "matchStartTime": "2026-03-31T19:30:00Z"
+  },
+  {
+    "teamA": "202",
+    "teamB": "205",
+    "venue": "Bharat Ratan Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",
+    "matchStartTime": "2026-04-01T19:30:00Z"
+  },
+  {
+    "teamA": "210",
+    "teamB": "204",
+    "venue": "Eden Gardens, Kolkata",
+    "matchStartTime": "2026-04-02T19:30:00Z"
+  },
+  {
+    "teamA": "207",
+    "teamB": "201",
+    "venue": "MA Chidambaram Stadium, Chennai",
+    "matchStartTime": "2026-04-03T19:30:00Z"
+  },
+  {
+    "teamA": "206",
+    "teamB": "202",
+    "venue": "Arun Jaitley Stadium, Delhi",
+    "matchStartTime": "2026-04-04T15:30:00Z"
+  },
+  {
+    "teamA": "209",
+    "teamB": "203",
+    "venue": "Narendra Modi Stadium, Ahmedabad",
+    "matchStartTime": "2026-04-04T19:30:00Z"
+  },
+  {
+    "teamA": "205",
+    "teamB": "210",
+    "venue": "Rajiv Gandhi International Stadium, Hyderabad",
+    "matchStartTime": "2026-04-05T15:30:00Z"
+  },
+  {
+    "teamA": "201",
+    "teamB": "208",
+    "venue": "M. Chinnaswamy Stadium, Bengaluru",
+    "matchStartTime": "2026-04-05T19:30:00Z"
+  },
+  {
+    "teamA": "207",
+    "teamB": "204",
+    "venue": "Eden Gardens, Kolkata",
+    "matchStartTime": "2026-04-06T19:30:00Z"
+  },
+  {
+    "teamA": "206",
+    "teamB": "209",
+    "venue": "Barsapara Stadium, Guwahati",
+    "matchStartTime": "2026-04-07T19:30:00Z"
+  },
+  {
+    "teamA": "203",
+    "teamB": "202",
+    "venue": "Arun Jaitley Stadium, Delhi",
+    "matchStartTime": "2026-04-08T19:30:00Z"
+  },
+  {
+    "teamA": "205",
+    "teamB": "204",
+    "venue": "Eden Gardens, Kolkata",
+    "matchStartTime": "2026-04-09T19:30:00Z"
+  },
+  {
+    "teamA": "208",
+    "teamB": "209",
+    "venue": "Barsapara Stadium, Guwahati",
+    "matchStartTime": "2026-04-10T19:30:00Z"
+  },
+  {
+    "teamA": "210",
+    "teamB": "207",
+    "venue": "Maharaja Yadavindra Singh International Cricket Stadium, Mullanpur",
+    "matchStartTime": "2026-04-11T15:30:00Z"
+  },
+  {
+    "teamA": "202",
+    "teamB": "201",
+    "venue": "MA Chidambaram Stadium, Chennai",
+    "matchStartTime": "2026-04-11T19:30:00Z"
+  },
+  {
+    "teamA": "203",
+    "teamB": "205",
+    "venue": "Bharat Ratan Shri Atal Bihari Vajpayee Ekana Cricket Stadium, Lucknow",
+    "matchStartTime": "2026-04-12T15:30:00Z"
+  },
+  {
+    "teamA": "208",
+    "teamB": "206",
+    "venue": "Wankhede Stadium, Mumbai",
+    "matchStartTime": "2026-04-12T19:30:00Z"
+  }
+]
+ 

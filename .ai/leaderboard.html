@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>IPL Predictor Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#21c45d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+    <!-- Sticky Header -->
+    <header
+        class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-primary/20">
+        <div class="max-w-md mx-auto px-4 py-4">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-3xl">trophy</span>
+                    <h1 class="text-xl font-bold tracking-tight">Leaderboard</h1>
+                </div>
+                <button class="p-2 rounded-full bg-slate-200 dark:bg-primary/10 text-slate-700 dark:text-primary">
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+            </div>
+            <!-- Wallet Card -->
+            <div class="bg-primary/10 border border-primary/20 rounded-xl p-4 flex items-center justify-between">
+                <div class="flex flex-col">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-primary/70">My
+                        Balance</span>
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-bold">2,450</span>
+                        <span class="text-sm font-medium text-primary">PTS</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Navigation Tabs -->
+        <div class="max-w-md mx-auto flex border-t border-slate-200 dark:border-primary/10"><button
+                class="flex-1 py-3 text-sm font-bold border-b-2 border-primary text-primary text-center">FRIENDS</button>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="flex-1 max-w-md mx-auto w-full px-4 py-6 space-y-4 mb-20">
+        <!-- Top 3 Podium Cards -->
+        <div class="grid grid-cols-3 gap-3 items-end pb-4">
+            <!-- Rank 2 -->
+            <div class="flex flex-col items-center gap-2">
+                <div class="relative">
+                    <img class="w-16 h-16 rounded-full border-2 border-slate-400 p-0.5"
+                        data-alt="Profile picture of second rank user"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBAUwDSAHPz3MFFYZtGezdzOqfdNYAfGHT7MZwzozj6av6INeFuRAyXCVkXGPlzf0NCm7O_dqlzxz9qGIFx0blrTLtqgQoXy3KSYGeTSHBvaztmLoEntmbhkW5ncdxLTv0Gk_SgPYBooP0NEUBdYT3zAqevbLWfqTPPMKFnfHd9iNPP4RLYWJv1otErlovIRFYvNyb2Sr5r_nDVSEtPliIewNR8yBuqqWy4UtC7Yam5ap-vd7PQQ8cUSsbVr5h3F0laZ4zqHouqZGc" />
+                    <div
+                        class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-400 text-slate-900 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                        2</div>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs font-bold truncate w-24">Arun V.</p>
+                    <p class="text-[10px] text-primary">18,240 pts</p>
+                </div>
+            </div>
+            <!-- Rank 1 -->
+            <div class="flex flex-col items-center gap-2">
+                <div class="relative">
+                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 text-yellow-500 animate-bounce">
+                        <span class="material-symbols-outlined text-3xl"
+                            style="font-variation-settings: 'FILL' 1">workspace_premium</span>
+                    </div>
+                    <img class="w-20 h-20 rounded-full border-4 border-yellow-500 p-1"
+                        data-alt="Profile picture of first rank user"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWmW3-4jgcAHIVCJ5LBQEzynrJFJxIY1pNCavgRYQMTH2ZFnyOeD2XAaXFcnqZyvDSn_zTyPNAqCWYE-Um8GpzcGzyuE7CKqJM91uGPajBarlEA6sRHgaKWFVtVCteH5AqWf-2AvjFbtS2cIhue1OrrtG5OG-RelmfjHhb0N_0dT-UQoFQsN2OnELGkgCueLf6LG31YZyb4MTW3NUU8-o4994N20nSh2jSKnpYlbTlMnrvCoN2i3GP3513f0ZjTxxOHKBOMBcaobQ" />
+                    <div
+                        class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-500 text-slate-900 rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                        1</div>
+                </div>
+                <div class="text-center">
+                    <p class="text-sm font-black truncate w-28">Rajesh Kumar</p>
+                    <p class="text-xs font-bold text-primary">20,150 pts</p>
+                </div>
+            </div>
+            <!-- Rank 3 -->
+            <div class="flex flex-col items-center gap-2">
+                <div class="relative">
+                    <img class="w-16 h-16 rounded-full border-2 border-orange-600 p-0.5"
+                        data-alt="Profile picture of third rank user"
+                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAQ_NoCxyywgRolRiCVUFaLVaupAFhbAPFUWDAUHEjYb48Xx7Klcn_RnjNoRZR2hiuuotgT9LdvcqSSVpbw5st2rb_Yj0zX0ZOtJn5IhNXTpPkYmIHru8tJGFFJYAHD2e7VB6_EKRlG4q3TTgFaAM4eC53bDeBwCrTSdt9dWLJJx0K3je4Av423cfa6d2s-nMkIRjq5yMXrQcjGsYtaydqrOaYOu-rWusDDTMpvCdKmwz5MqCc3TKCONydp750_SuC2lLWuNwSNgfc" />
+                    <div
+                        class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-600 text-slate-900 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                        3</div>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs font-bold truncate w-24">Sneha S.</p>
+                    <p class="text-[10px] text-primary">17,890 pts</p>
+                </div>
+            </div>
+        </div>
+        <!-- Leaderboard List -->
+        <div class="space-y-2">
+            <!-- User Rank Item -->
+            <div
+                class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 flex items-center gap-4">
+                <span class="text-slate-500 font-bold w-6">#4</span>
+                <img class="w-10 h-10 rounded-full" data-alt="User avatar for rank 4"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdwapPcw1R4lVpuNVjhddsKQNFs9gJNSdigqW2IuhAPz70ztymTEz0Ml__PW3-u5f5Adin1TWu9I8NCRagePxrbR_Np_V2eLsG0Bn638OcJ5KOAzicw4kYcDSj-a7CbvtfxEjic5wq55O-JD-yx5W7dobYRJaLE3UATcWpqAK4FPpx8fvi68qXHwsYAZcFQN2kALuzD8EqX2yP8oZ0DdKM6hYxKluTLYFs6hoDSjyf_DLHG1BIhpd3BNgRZInrg0kFKFvjPRueHIA" />
+                <div class="flex-1">
+                    <p class="font-bold">Priya Sharma</p>
+                    <p class="text-xs text-slate-500">Won 12/15 matches</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-primary">15,420</p>
+                    <p class="text-[10px] uppercase text-slate-500">Points</p>
+                </div>
+            </div>
+            <div
+                class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 flex items-center gap-4">
+                <span class="text-slate-500 font-bold w-6">#5</span>
+                <img class="w-10 h-10 rounded-full" data-alt="User avatar for rank 5"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzuR6H-QpJeEX-jhr2vbY6GMC8JhZayZZCFyAr-J6m5_vPmSmmNWCyTXgFW0sovspiZixltWX0NfHG7u_dMUqhxqBDxnHk_hC2FWY8IAN_8JCAV8i5UHjbs_V2_bGRifjH8KWgp5okwghyVuLl-FBWPb-6LVaBXF8GTaxMyVDvzT6LXsz7tTERUtuv7c2u1JrT218HTH5IteYOZjWckrZAw7LVvCfJFs-WYp2O2rVc2To5Nr6SlsNtiTgF8VFZRxmvQTaGFfUFtjk" />
+                <div class="flex-1">
+                    <p class="font-bold">Vikram Singh</p>
+                    <p class="text-xs text-slate-500">Won 10/15 matches</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-primary">14,980</p>
+                    <p class="text-[10px] uppercase text-slate-500">Points</p>
+                </div>
+            </div>
+            <!-- Current User Highlighted -->
+            <div
+                class="bg-primary/20 border-2 border-primary rounded-xl p-4 flex items-center gap-4 shadow-lg shadow-primary/10">
+                <span class="text-primary font-black w-6">#24</span>
+                <div
+                    class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-background-dark font-bold text-lg">
+                    YO</div>
+                <div class="flex-1">
+                    <p class="font-black text-primary">You (Arjun)</p>
+                    <p class="text-xs text-slate-400">Keep it up!</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-primary">2,450</p>
+                    <p class="text-[10px] uppercase text-slate-400">Points</p>
+                </div>
+            </div>
+            <div
+                class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 flex items-center gap-4">
+                <span class="text-slate-500 font-bold w-6">#25</span>
+                <img class="w-10 h-10 rounded-full" data-alt="User avatar for rank 25"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuAEygIBmVWvgOBT1kre9MVofkxOLgyMRkwwr-3fajJKAvnP-3onJsByIm1vZm9Awu10ExGPGr1KQ7Cfm8zUkei3FVIpEtaVUmTBMEf4H3tHraOeXPaBszst03oHFPQNhSamQ1S_OO7Snj8c1gUHPqz4klvK6IEVYoZHi8yHaVYRJBIFylZP9LNgO7DZdGU5vlv9SHf9nA4mMoFiquJ1CKeEpOxZuItHNS-7xb1mAUHqY-ypbFkeBkynmJTk7j_xgRH-XNcy52esLj4" />
+                <div class="flex-1">
+                    <p class="font-bold">Ananya R.</p>
+                    <p class="text-xs text-slate-500">Won 8/15 matches</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-primary">2,410</p>
+                    <p class="text-[10px] uppercase text-slate-500">Points</p>
+                </div>
+            </div>
+            <div
+                class="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 flex items-center gap-4">
+                <span class="text-slate-500 font-bold w-6">#26</span>
+                <img class="w-10 h-10 rounded-full" data-alt="User avatar for rank 26"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoNfex7CCAny7p6xuTDWpCmgiV9OxqnFgoH2JNy4uyesfhG5HhzB9n6aQBAH5VpF-fDRivP845-tFLmchcUGgisSj6GD9QmPfcblxXyXht2D4EFs-1uGMJvSbrEmSCPO7nagPc4v5mGNFKjDxcSw-uldFqEo1G84yVgdVOxhMkC0gcY0mDRuseHzqUicsisKdMCo8aDZvBeCf1CgmoDFYKJfirbEQNUg7Ih5ATagX_gOJ7dx_cUYT70wh2d6EFjU5n9EvfgVk2sYw" />
+                <div class="flex-1">
+                    <p class="font-bold">Kabir Das</p>
+                    <p class="text-xs text-slate-500">Won 7/15 matches</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-primary">2,350</p>
+                    <p class="text-[10px] uppercase text-slate-500">Points</p>
+                </div>
+            </div>
+        </div>
+    </main>
+    <!-- Bottom Navigation Bar -->
+    <nav
+        class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-[#1d2620] border-t border-slate-200 dark:border-primary/20 px-6 py-3 z-50">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+                <span class="material-symbols-outlined">home</span>
+                <span class="text-[10px] font-medium">Home</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+                <span class="material-symbols-outlined">sports_cricket</span>
+                <span class="text-[10px] font-medium">Matches</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 text-primary" href="#">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">leaderboard</span>
+                <span class="text-[10px] font-bold">Leaderboard</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+                <span class="material-symbols-outlined">account_circle</span>
+                <span class="text-[10px] font-medium">Profile</span>
+            </a>
+        </div>
+    </nav>
+</body>
+
+</html>

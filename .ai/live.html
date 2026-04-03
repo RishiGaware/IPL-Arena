@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Match Predictions - Community Bets</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#21c45d",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#122017",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+    <!-- Header / Wallet Section -->
+    <header
+        class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-primary/10">
+        <div class="flex items-center justify-between p-4 max-w-2xl mx-auto w-full">
+            <button class="flex items-center justify-center p-2 rounded-full hover:bg-primary/10 transition-colors">
+                <span class="material-symbols-outlined text-slate-900 dark:text-slate-100">arrow_back</span>
+            </button>
+            <h1 class="text-lg font-bold tracking-tight">Match Predictions</h1>
+            <div class="bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-sm">account_balance_wallet</span>
+                <span class="text-primary font-bold text-sm">$250.00</span>
+            </div>
+        </div>
+    </header>
+    <main class="flex-1 max-w-2xl mx-auto w-full pb-24">
+        <!-- Match Summary Card -->
+        <div class="p-4">
+            <div class="bg-gradient-to-br from-primary/20 to-transparent p-6 rounded-xl border border-primary/10">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-xs font-bold uppercase tracking-wider text-primary">Live Match Details</span>
+                    <span
+                        class="bg-red-500/20 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                        <span class="size-1.5 bg-red-500 rounded-full"></span> LIVE
+                    </span>
+                </div>
+                <h2 class="text-2xl font-bold mb-1">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="size-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px]">
+                            T1</div> Team A <span class="text-primary/50 mx-2 text-lg">vs</span> Team B <div
+                            class="size-8 bg-slate-200 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px]">
+                            T2</div>
+                    </div>
+                </h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400">World Championship • Group Stage</p>
+            </div>
+        </div>
+        <!-- Navigation Tabs -->
+        <div class="px-4 mb-4">
+            <div class="flex border-b border-primary/10">
+                <button class="flex-1 py-3 text-sm font-bold border-b-2 border-primary text-primary">
+                    Community Bets
+                </button>
+            </div>
+        </div>
+        <!-- Filter/Search -->
+        <div class="px-4 mb-4">
+            <div class="relative">
+                <span
+                    class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+                <input
+                    class="w-full bg-slate-100 dark:bg-slate-800/50 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/50"
+                    placeholder="Search user..." type="text" />
+            </div>
+        </div>
+        <!-- Bets List/Table -->
+        <div class="flex flex-col gap-px bg-primary/5">
+            <!-- Table Header -->
+            <div
+                class="grid grid-cols-12 gap-4 px-4 py-3 bg-background-light dark:bg-background-dark text-[10px] uppercase font-bold tracking-widest text-slate-500 dark:text-slate-400">
+                <div class="col-span-6">User / Prediction</div>
+                <div class="col-span-3 text-center">Team</div>
+                <div class="col-span-3 text-right">Points</div>
+            </div>
+            <!-- List Items -->
+            <div
+                class="grid grid-cols-12 items-center gap-4 px-4 py-4 bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
+                <div class="col-span-6 flex items-center gap-3">
+                    <div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
+                        <img class="size-full object-cover" data-alt="Portrait of Alex Johnson"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfHahAA9RBrcGGlmAeM1OFIzpT8WpR2eF-vz8uaF3PyMGmTe4LdLiuqDmZ0aEOZ99jsRJig_5UBNsAioxK-Zg4AMcPJlQK9nx5v9SRTPNa4PrNykEJ5k1j-T_5RTTBe9cSrb0mguYrQAPaaXoawk6CrrPcZ6TPl2M0sSDDv2rAEbNKaBCT0nlAFqEniOf2EY2H8aZ3DrGIdjk13-96RmuD8EGjhChK__5t18dfJ7ZR3YjTECUcLM7Anpt7i-MHRGRwQsPfDcClMRw" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Alex Johnson</p>
+                        <p class="text-[10px] text-slate-500">2 mins ago</p>
+                    </div>
+                </div>
+                <div class="col-span-3 text-center">
+                    <div class="size-8 bg-primary/20 rounded-full mx-auto flex items-center justify-center"><span
+                            class="text-primary text-[10px] font-bold">T1</span></div>
+                </div>
+                <div class="col-span-3 text-right">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100">1,250</p>
+                </div>
+            </div>
+            <div
+                class="grid grid-cols-12 items-center gap-4 px-4 py-4 bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
+                <div class="col-span-6 flex items-center gap-3">
+                    <div class="size-10 rounded-full border-2 border-slate-500/20 overflow-hidden shrink-0">
+                        <img class="size-full object-cover" data-alt="Portrait of Sarah Chen"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBpybmoPa69PJcz2J1T-KahHM4IoF8rC_nMxwW5uTF9iGmxnm-AvGa9MysN7adDqXJdG6oD7kAZLioKzjHhUISrYDalmEX8bbvlhEmjbbzVPYFykJyhQJTNN3U0nWmjh3s9LYF-fR7scSZqcnQzRji1TM3jxG3PqU5GaWwq_F5_jIoLP7YGagKVJT9V5L1433Yw9N_oI0uacnBrKdprh_HYme5LA0N1UAO3PVnAcxzarBhiceundgRpCqACzWUPS1JWNXNJXJfM2c" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Sarah Chen</p>
+                        <p class="text-[10px] text-slate-500">5 mins ago</p>
+                    </div>
+                </div>
+                <div class="col-span-3 text-center">
+                    <div class="size-8 bg-slate-500/20 rounded-full mx-auto flex items-center justify-center"><span
+                            class="text-slate-500 dark:text-slate-400 text-[10px] font-bold">T2</span></div>
+                </div>
+                <div class="col-span-3 text-right">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100">800</p>
+                </div>
+            </div>
+            <div
+                class="grid grid-cols-12 items-center gap-4 px-4 py-4 bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
+                <div class="col-span-6 flex items-center gap-3">
+                    <div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
+                        <img class="size-full object-cover" data-alt="Portrait of Mike Ross"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqGOvewZpNWusOPjPNLYIXxCvMSz06Ki3eAxQE2pVh8LbFmgnadTYGRrwnBBSXT9W-VnzmtePprMoivshAVfzkxNsp28zdrl8RFWV23lrgWufu8Dq48VmYV-G1GTSbk-p3ihStGqsCwDfEFOeGEcE3tyhO6UJ3LWmfp8IiqZTaXvVny5Chon0b3UrtnFvEPhojbNwS2a_6lsk6b0xzp6s0JI7n0_t2X_Gw-uOUBj2NBeM9VI39kpGe7A1i7q6YckD7XPIFFE-kaTE" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Mike Ross</p>
+                        <p class="text-[10px] text-slate-500">12 mins ago</p>
+                    </div>
+                </div>
+                <div class="col-span-3 text-center">
+                    <div class="size-8 bg-primary/20 rounded-full mx-auto flex items-center justify-center"><span
+                            class="text-primary text-[10px] font-bold">T1</span></div>
+                </div>
+                <div class="col-span-3 text-right">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100">2,500</p>
+                </div>
+            </div>
+            <div
+                class="grid grid-cols-12 items-center gap-4 px-4 py-4 bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
+                <div class="col-span-6 flex items-center gap-3">
+                    <div class="size-10 rounded-full border-2 border-slate-500/20 overflow-hidden shrink-0">
+                        <img class="size-full object-cover" data-alt="Portrait of David Kim"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD-o0O7u-MHb5PjR-KgsGtzr81nIUdbGXvQ066a3K9ulCUyhrmNrf18M_BgOxSIRjOQhWwuNYRXWHKjUpBTg0-skTxYl0p5eqCThX50Nu7_eXH_J2lnvk8wcMW04Eexz1Oli7oXQ1A1ZqoL4FOd9fIbFJnEy4tS9Yfl9SEuXEwC1VM9oDwiK7xEunLeg4LfwJ8KyQGXe71yU4CTXDsJUet8z-gJ2eqvMrFK_z6edU7xGtdo6Ly9laVpdNOFoU1v9ZfL-x6r1DKndw" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">David Kim</p>
+                        <p class="text-[10px] text-slate-500">15 mins ago</p>
+                    </div>
+                </div>
+                <div class="col-span-3 text-center">
+                    <div class="size-8 bg-slate-500/20 rounded-full mx-auto flex items-center justify-center"><span
+                            class="text-slate-500 dark:text-slate-400 text-[10px] font-bold">T2</span></div>
+                </div>
+                <div class="col-span-3 text-right">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100">450</p>
+                </div>
+            </div>
+            <div
+                class="grid grid-cols-12 items-center gap-4 px-4 py-4 bg-background-light dark:bg-background-dark hover:bg-primary/5 transition-colors">
+                <div class="col-span-6 flex items-center gap-3">
+                    <div class="size-10 rounded-full border-2 border-primary/20 overflow-hidden shrink-0">
+                        <img class="size-full object-cover" data-alt="Portrait of Elena V"
+                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlxPuqn71ulKZBXYcTif9os7mU4hKbyp9QRmhHXB54yK_6AelWL17TNEVGXjWDvT_krtCPbdAXmCEZTfIBrx4fxQRa6VvQbV5dT6KfPaHOqGPjLLA25I1CSOUpyp-BO432yG0TdimPhq3I-ZZGN87U3juM54_RCbdKs9s0DnEOEMaNSethdOunqu1vNotz7y2EOTm2IJUJnoJClPJBL-UC0SuV67bFmOJFinaWQwV8Am03MPsC1T62owbBERCAAJF0jIkFt4SWPSE" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold">Elena V.</p>
+                        <p class="text-[10px] text-slate-500">18 mins ago</p>
+                    </div>
+                </div>
+                <div class="col-span-3 text-center">
+                    <div class="size-8 bg-primary/20 rounded-full mx-auto flex items-center justify-center"><span
+                            class="text-primary text-[10px] font-bold">T1</span></div>
+                </div>
+                <div class="col-span-3 text-right">
+                    <p class="font-bold text-sm text-slate-900 dark:text-slate-100">5,000</p>
+                </div>
+            </div>
+        </div>
+        <div class="p-8 text-center">
+            <button class="text-primary font-bold text-sm flex items-center gap-2 mx-auto hover:underline">
+                View more predictions
+                <span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+            </button>
+        </div>
+    </main>
+    <!-- Bottom Navigation Bar -->
+    <nav
+        class="fixed bottom-0 w-full bg-background-light dark:bg-background-dark border-t border-primary/10 px-4 pb-6 pt-2 z-20">
+        <div class="max-w-2xl mx-auto flex justify-around items-center">
+            <a class="flex flex-col items-center gap-1 group" href="#">
+                <span
+                    class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">home</span>
+                <span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Home</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 group" href="#">
+                <span
+                    class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">trophy</span>
+                <span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Matches</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 group" href="#">
+                <span class="material-symbols-outlined text-primary fill-[1]">monitoring</span>
+                <span class="text-[10px] font-medium text-primary">Bets</span>
+            </a>
+            <a class="flex flex-col items-center gap-1 group" href="#">
+                <span
+                    class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors">person</span>
+                <span class="text-[10px] font-medium text-slate-400 group-hover:text-primary">Profile</span>
+            </a>
+        </div>
+    </nav>
+</body>
+
+</html>
