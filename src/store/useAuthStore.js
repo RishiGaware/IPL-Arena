@@ -16,13 +16,7 @@ const useAuthStore = create((set) => ({
 
   initializeAuth: () => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      let isAdmin = false;
-      
       if (currentUser) {
-        if (currentUser.email === "tyrion.mastermind@gmail.com") {
-          isAdmin = true;
-        }
-
         const ref = doc(db, "users", currentUser.uid);
         const snap = await getDoc(ref);
 
@@ -33,7 +27,6 @@ const useAuthStore = create((set) => ({
             email: currentUser.email,
             photoURL: currentUser.photoURL || "",
             points: STARTING_POINTS,
-            isAdmin: isAdmin,
             createdAt: serverTimestamp(),
           });
         } else {
@@ -43,15 +36,12 @@ const useAuthStore = create((set) => ({
             {
               displayName: currentUser.displayName || "",
               photoURL: currentUser.photoURL || "",
-              isAdmin: isAdmin,
             },
             { merge: true },
           );
         }
       }
-      
-      const userObj = currentUser ? { ...currentUser, isAdmin } : null;
-      set({ user: userObj, loading: false });
+      set({ user: currentUser, loading: false });
     });
     return unsubscribe;
   },
