@@ -24,7 +24,8 @@ export default function Bet() {
     const user = useAuthStore((state) => state.user);
 
     // Live data from Firestore
-    const [nextMatch, setNextMatch] = useState(null);
+    const [upcomingMatches, setUpcomingMatches] = useState([]);
+    const [selectedMatch, setSelectedMatch] = useState(null);
     const [userPoints, setUserPoints] = useState(0);
     const [existingBet, setExistingBet] = useState(null);
 
@@ -35,34 +36,41 @@ export default function Bet() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [error, setError] = useState("");
 
-    // ─── Fetch the first upcoming match ─────────────────────────
+    // ─── Fetch all upcoming matches ─────────────────────────────
     useEffect(() => {
         const q = query(
             collection(db, "matches"),
             where("status", "==", "upcoming"),
             orderBy("matchStartTime", "asc"),
-            limit(1),
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            if (!snapshot.empty) {
-                const docSnap = snapshot.docs[0];
+            const matches = snapshot.docs.map(docSnap => {
                 const data = docSnap.data();
                 const dateObj = data.matchStartTime.toDate();
-
-                setNextMatch({
+                return {
                     id: docSnap.id,
                     ...data,
                     date: format(dateObj, "EEE, MMM d"),
                     time: format(dateObj, "h:mm a"),
-                });
-            } else {
-                setNextMatch(null);
+                };
+            });
+            setUpcomingMatches(matches);
+            
+            // Set first match as default if none selected
+            if (matches.length > 0 && !selectedMatch) {
+                setSelectedMatch(matches[0]);
+            } else if (matches.length > 0 && selectedMatch) {
+                // Keep selection but update data
+                const updated = matches.find(m => m.id === selectedMatch.id);
+                if (updated) setSelectedMatch(updated);
+            } else if (matches.length === 0) {
+                setSelectedMatch(null);
             }
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [selectedMatch]);
 
     // ─── Fetch user's points balance in real-time ───────────────
     useEffect(() => {
@@ -77,9 +85,9 @@ export default function Bet() {
         return () => unsubscribe();
     }, [user]);
 
-    // ─── Fetch user's existing bet for this match ───────────────
+    // ─── Fetch user's existing bet for the selected match ───────
     useEffect(() => {
-        if (!user || !nextMatch) {
+        if (!user || !selectedMatch) {
             setExistingBet(null);
             return;
         }
@@ -87,7 +95,7 @@ export default function Bet() {
         const q = query(
             collection(db, "bets"),
             where("userId", "==", user.uid),
-            where("matchId", "==", nextMatch.id),
+            where("matchId", "==", selectedMatch.id),
         );
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -102,11 +110,12 @@ export default function Bet() {
                 setExistingBet(null);
                 setSelectedTeam(null);
                 setBetAmount("");
+                setError("");
             }
         });
 
         return () => unsubscribe();
-    }, [user, nextMatch]);
+    }, [user, selectedMatch]);
 
     // ─── Quick-add buttons ──────────────────────────────────────
     const handleQuickAdd = (amount) => {
@@ -116,7 +125,7 @@ export default function Bet() {
 
     // ─── Place or Update Bet ────────────────────────────────────
     const handlePlaceBet = async () => {
-        if (!selectedTeam || !betAmount || !nextMatch || !user) return;
+        if (!selectedTeam || !betAmount || !selectedMatch || !user) return;
 
         const amount = Number.parseInt(betAmount);
         if (amount < 50) {
@@ -159,7 +168,7 @@ export default function Bet() {
                         type: "bet_place",
                         points: -amount,
                         refundedPoints: existingBet.points,
-                        matchId: nextMatch.id,
+                        matchId: selectedMatch.id,
                         betId: existingBet.id,
                         note: "bet_update",
                         createdAt: serverTimestamp(),
@@ -175,7 +184,7 @@ export default function Bet() {
                 // 2. Create the bet document
                 const betRef = await addDoc(collection(db, "bets"), {
                     userId: user.uid,
-                    matchId: nextMatch.id,
+                    matchId: selectedMatch.id,
                     team: selectedTeam,
                     points: amount,
                     result: "pending",
@@ -187,7 +196,7 @@ export default function Bet() {
                     userId: user.uid,
                     type: "bet_place",
                     points: -amount,
-                    matchId: nextMatch.id,
+                    matchId: selectedMatch.id,
                     betId: betRef.id,
                     createdAt: serverTimestamp(),
                 });
@@ -220,7 +229,7 @@ export default function Bet() {
                 userId: user.uid,
                 type: "bet_place",
                 points: existingBet.points,
-                matchId: nextMatch.id,
+                matchId: selectedMatch.id,
                 betId: existingBet.id,
                 note: "bet_removed",
                 createdAt: serverTimestamp(),
@@ -240,7 +249,7 @@ export default function Bet() {
     };
 
     // ─── No upcoming match state ────────────────────────────────
-    if (!nextMatch) {
+    if (upcomingMatches.length === 0 || !selectedMatch) {
         return (
             <div className="flex flex-col w-full h-full">
                 <TopHeader title="Place Your Bet" />
@@ -270,6 +279,34 @@ export default function Bet() {
 
             <main className="flex-1 overflow-y-auto custom-scrollbar w-full pb-24 max-w-md mx-auto space-y-6 pt-4">
 
+                {/* Match Selector (if multiple) */}
+                {upcomingMatches.length > 1 && (
+                    <div className="px-4 mb-2">
+                        <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                            {upcomingMatches.map((m) => {
+                                const isSelected = selectedMatch.id === m.id;
+                                return (
+                                    <button
+                                        key={m.id}
+                                        onClick={() => setSelectedMatch(m)}
+                                        className={`flex-shrink-0 px-4 py-3 rounded-xl border-2 transition-all flex flex-col items-center gap-1 min-w-[120px] ${isSelected
+                                                ? 'border-primary bg-primary/5 shadow-md'
+                                                : 'border-slate-200 dark:border-primary/10 bg-white dark:bg-primary/5'
+                                            }`}
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black text-slate-900 dark:text-slate-100">{TEAM_SHORT_NAMES[m.teamA]}</span>
+                                            <span className="text-[8px] font-bold text-slate-400">vs</span>
+                                            <span className="text-[10px] font-black text-slate-900 dark:text-slate-100">{TEAM_SHORT_NAMES[m.teamB]}</span>
+                                        </div>
+                                        <span className="text-[8px] text-slate-500 uppercase">{m.time}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Match Highlight Card */}
                 <div className="px-4">
                     <div className="card-base text-center !p-6 flex flex-col items-center justify-center relative overflow-hidden">
@@ -278,18 +315,18 @@ export default function Bet() {
 
                         <span className="tag-primary absolute top-4 left-4 !text-[10px]">UPCOMING</span>
                         <span className="text-[10px] font-medium text-slate-500 absolute top-4 right-4">
-                            {nextMatch.date} • {nextMatch.time}
+                            {selectedMatch.date} • {selectedMatch.time}
                         </span>
 
                         <div className="flex items-center gap-6 mt-6 z-10 w-full justify-center">
                             <div className="flex flex-col items-center gap-1">
                                 <img
-                                    src={getTeamLogo(nextMatch.teamA)}
-                                    alt={getTeamName(nextMatch.teamA)}
+                                    src={getTeamLogo(selectedMatch.teamA)}
+                                    alt={getTeamName(selectedMatch.teamA)}
                                     className="size-16 object-contain drop-shadow-md bg-white rounded-full p-1 border border-slate-200"
                                 />
                                 <span className="text-xs font-bold mt-1">
-                                    {TEAM_SHORT_NAMES[nextMatch.teamA] || nextMatch.teamA}
+                                    {TEAM_SHORT_NAMES[selectedMatch.teamA] || selectedMatch.teamA}
                                 </span>
                             </div>
 
@@ -297,19 +334,19 @@ export default function Bet() {
 
                             <div className="flex flex-col items-center gap-1">
                                 <img
-                                    src={getTeamLogo(nextMatch.teamB)}
-                                    alt={getTeamName(nextMatch.teamB)}
+                                    src={getTeamLogo(selectedMatch.teamB)}
+                                    alt={getTeamName(selectedMatch.teamB)}
                                     className="size-16 object-contain drop-shadow-md bg-white rounded-full p-1 border border-slate-200"
                                 />
                                 <span className="text-xs font-bold mt-1">
-                                    {TEAM_SHORT_NAMES[nextMatch.teamB] || nextMatch.teamB}
+                                    {TEAM_SHORT_NAMES[selectedMatch.teamB] || selectedMatch.teamB}
                                 </span>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-2 text-slate-500 mt-4 z-10">
                             <span className="material-symbols-outlined text-[1rem]">location_on</span>
-                            <span className="text-[10px]">{nextMatch.venue}</span>
+                            <span className="text-[10px]">{selectedMatch.venue}</span>
                         </div>
                     </div>
                 </div>
@@ -325,7 +362,7 @@ export default function Bet() {
                         <h4 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-3 px-1">Select Winning Team</h4>
                         <div className="grid grid-cols-2 gap-4">
                             {/* Team A Radio Card */}
-                            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedTeam === nextMatch.teamA
+                            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedTeam === selectedMatch.teamA
                                 ? 'border-primary bg-primary/5'
                                 : 'border-slate-200 dark:border-primary/10 bg-slate-50 dark:bg-primary/5'
                                 }`}>
@@ -333,15 +370,15 @@ export default function Bet() {
                                     type="radio"
                                     name="team"
                                     className="hidden"
-                                    checked={selectedTeam === nextMatch.teamA}
-                                    onChange={() => setSelectedTeam(nextMatch.teamA)}
+                                    checked={selectedTeam === selectedMatch.teamA}
+                                    onChange={() => setSelectedTeam(selectedMatch.teamA)}
                                 />
                                 <div className="size-12 mb-2 rounded-full bg-white flex items-center justify-center p-1 border border-slate-200 shadow-sm">
-                                    <img alt={getTeamName(nextMatch.teamA)} className="h-full w-full object-contain" src={getTeamLogo(nextMatch.teamA)} />
+                                    <img alt={getTeamName(selectedMatch.teamA)} className="h-full w-full object-contain" src={getTeamLogo(selectedMatch.teamA)} />
                                 </div>
-                                <span className="font-bold text-sm">{TEAM_SHORT_NAMES[nextMatch.teamA] || nextMatch.teamA}</span>
+                                <span className="font-bold text-sm">{TEAM_SHORT_NAMES[selectedMatch.teamA] || selectedMatch.teamA}</span>
 
-                                {selectedTeam === nextMatch.teamA && (
+                                {selectedTeam === selectedMatch.teamA && (
                                     <div className="absolute top-2 right-2 text-primary">
                                         <span className="material-symbols-outlined font-variation-settings-['FILL'_1] text-sm">check_circle</span>
                                     </div>
@@ -349,7 +386,7 @@ export default function Bet() {
                             </label>
 
                             {/* Team B Radio Card */}
-                            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedTeam === nextMatch.teamB
+                            <label className={`relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${selectedTeam === selectedMatch.teamB
                                 ? 'border-primary bg-primary/5'
                                 : 'border-slate-200 dark:border-primary/10 bg-slate-50 dark:bg-primary/5'
                                 }`}>
@@ -357,15 +394,15 @@ export default function Bet() {
                                     type="radio"
                                     name="team"
                                     className="hidden"
-                                    checked={selectedTeam === nextMatch.teamB}
-                                    onChange={() => setSelectedTeam(nextMatch.teamB)}
+                                    checked={selectedTeam === selectedMatch.teamB}
+                                    onChange={() => setSelectedTeam(selectedMatch.teamB)}
                                 />
                                 <div className="size-12 mb-2 rounded-full bg-white flex items-center justify-center p-1 border border-slate-200 shadow-sm">
-                                    <img alt={getTeamName(nextMatch.teamB)} className="h-full w-full object-contain" src={getTeamLogo(nextMatch.teamB)} />
+                                    <img alt={getTeamName(selectedMatch.teamB)} className="h-full w-full object-contain" src={getTeamLogo(selectedMatch.teamB)} />
                                 </div>
-                                <span className="font-bold text-sm">{TEAM_SHORT_NAMES[nextMatch.teamB] || nextMatch.teamB}</span>
+                                <span className="font-bold text-sm">{TEAM_SHORT_NAMES[selectedMatch.teamB] || selectedMatch.teamB}</span>
 
-                                {selectedTeam === nextMatch.teamB && (
+                                {selectedTeam === selectedMatch.teamB && (
                                     <div className="absolute top-2 right-2 text-primary">
                                         <span className="material-symbols-outlined font-variation-settings-['FILL'_1] text-sm">check_circle</span>
                                     </div>

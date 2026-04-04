@@ -8,7 +8,7 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
-import { format } from "date-fns";
+import { isSameDay, format } from "date-fns";
 import React, { useState, useEffect, useMemo } from "react";
 
 import TopHeader from "../components/ui/TopHeader";
@@ -18,64 +18,75 @@ import { db } from "../firebase";
 
 export default function Live() {
   const user = useAuthStore((state) => state.user);
-  const [liveMatch, setLiveMatch] = useState(null);
-  const [bets, setBets] = useState([]);
+  const [liveMatches, setLiveMatches] = useState([]);
+  const [betsMap, setBetsMap] = useState({}); // matchId → bets[]
   const [betUsers, setBetUsers] = useState({}); // userId → { displayName, photoURL }
 
-  // ─── Fetch the current live match (status = betting_closed) ──
+  // ─── Fetch live/upcoming matches for TODAY ───────────────────
   useEffect(() => {
     const q = query(
       collection(db, "matches"),
-      where("status", "in", ["upcoming", "UPCOMING", "betting_closed"]),
+      where("status", "in", [
+        "upcoming",
+        "UPCOMING",
+        "betting_closed",
+        "live",
+        "LIVE",
+        "betting_open",
+        "BETTING_OPEN",
+      ]),
       orderBy("matchStartTime", "asc"),
-      limit(1),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (snapshot.empty) {
-        setLiveMatch(null);
-      } else {
-        const docSnap = snapshot.docs[0];
-        const data = docSnap.data();
-        const dateObj = data.matchStartTime.toDate();
+      const today = new Date();
+      const matches = snapshot.docs
+        .map((docSnap) => {
+          const data = docSnap.data();
+          const dateObj = data.matchStartTime.toDate();
+          return {
+            id: docSnap.id,
+            ...data,
+            date: format(dateObj, "EEE, MMM d"),
+            time: format(dateObj, "h:mm a"),
+            dateObj,
+          };
+        })
+        .filter((match) => isSameDay(match.dateObj, today));
 
-        setLiveMatch({
-          id: docSnap.id,
-          ...data,
-          date: format(dateObj, "EEE, MMM d"),
-          time: format(dateObj, "h:mm a"),
-        });
-      }
+      setLiveMatches(matches);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // ─── Fetch all bets for the live match ───────────────────────
+  // ─── Fetch all bets for all live matches ────────────────────
   useEffect(() => {
-    if (!liveMatch) {
-      // No subscription needed — return a cleanup that resets bets.
-      // Using queueMicrotask avoids the synchronous-setState-in-effect warning.
-      queueMicrotask(() => setBets([]));
+    if (liveMatches.length === 0) {
+      queueMicrotask(() => setBetsMap({}));
       return;
     }
 
+    const matchIds = liveMatches.map((m) => m.id);
     const q = query(
       collection(db, "bets"),
-      where("matchId", "==", liveMatch.id),
+      where("matchId", "in", matchIds),
     );
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const betsData = [];
+      const newBetsMap = {};
       const userIds = new Set();
 
       snapshot.forEach((d) => {
         const data = { id: d.id, ...d.data() };
-        betsData.push(data);
+        if (!newBetsMap[data.matchId]) {
+          newBetsMap[data.matchId] = [];
+        }
+        newBetsMap[data.matchId].push(data);
         userIds.add(data.userId);
       });
 
-      setBets(betsData);
+      setBetsMap(newBetsMap);
 
       // Fetch user profiles for avatars and names
       const usersMap = {};
@@ -101,14 +112,16 @@ export default function Live() {
     });
 
     return () => unsubscribe();
-  }, [liveMatch]);
+  }, [liveMatches]);
 
-  // ─── Calculate bet distribution ──────────────────────────────
-  const betStats = useMemo(() => {
-    if (!liveMatch || bets.length === 0) {
+  // ─── Helper: Calculate bet distribution for a match ────────
+  const getBetStats = (match, matchBets = []) => {
+    if (!match || matchBets.length === 0) {
       return {
-        teamABets: 0,
-        teamBBets: 0,
+        teamACount: 0,
+        teamBCount: 0,
+        teamAPool: 0,
+        teamBPool: 0,
         teamAPercent: 50,
         teamBPercent: 50,
         totalBets: 0,
@@ -116,11 +129,11 @@ export default function Live() {
       };
     }
 
-    const teamABets = bets.filter(
-      (b) => b.team.toString() === liveMatch.teamA.toString(),
+    const teamABets = matchBets.filter(
+      (b) => b.team.toString() === match.teamA.toString(),
     );
-    const teamBBets = bets.filter(
-      (b) => b.team.toString() === liveMatch.teamB.toString(),
+    const teamBBets = matchBets.filter(
+      (b) => b.team.toString() === match.teamB.toString(),
     );
 
     const teamAPool = teamABets.reduce((sum, b) => sum + b.points, 0);
@@ -138,10 +151,10 @@ export default function Live() {
       teamBPool,
       teamAPercent,
       teamBPercent,
-      totalBets: bets.length,
+      totalBets: matchBets.length,
       totalPool,
     };
-  }, [bets, liveMatch]);
+  };
 
   // ─── Avatar helper ───────────────────────────────────────────
   const renderUserAvatar = (userId) => {
@@ -170,7 +183,7 @@ export default function Live() {
   };
 
   // ─── No live match state ─────────────────────────────────────
-  if (!liveMatch) {
+  if (liveMatches.length === 0) {
     return (
       <div className="flex flex-col w-full h-full">
         <TopHeader title="Live Match" />
@@ -191,197 +204,223 @@ export default function Live() {
     <div className="flex flex-col w-full h-full">
       <TopHeader title="Live Match" />
 
-      <main className="flex-1 overflow-y-auto custom-scrollbar w-full pb-6 max-w-md mx-auto space-y-5 pt-4">
-        {/* Match Hero Card */}
-        <div className="px-4">
-          <div className="card-base !p-0 overflow-hidden relative border-0">
-            {/* Dark gradient background */}
-            <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
-            <div
-              className="absolute inset-0 opacity-15 pointer-events-none z-[1]"
-              style={{
-                background:
-                  "radial-gradient(circle at 30% 50%, var(--color-primary), transparent 60%), radial-gradient(circle at 70% 50%, var(--color-primary), transparent 60%)",
-              }}
-            />
+      <main className="flex-1 overflow-y-auto custom-scrollbar w-full py-4 max-w-md mx-auto space-y-12">
+        {liveMatches.map((match) => {
+          const matchBets = betsMap[match.id] || [];
+          const betStats = getBetStats(match, matchBets);
 
-            <div className="relative z-20 p-6 flex flex-col min-h-[180px]">
-              {/* Top row: LIVE badge + venue */}
-              <div className="flex justify-between items-start">
-                <span className="tag-live backdrop-blur-sm bg-red-500/40 text-red-100 border border-red-500/50">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />{" "}
-                  LIVE
-                </span>
-                <div className="text-right">
-                  <p className="text-[10px] text-slate-400 uppercase">
-                    {liveMatch.venue}
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    {liveMatch.date} • {liveMatch.time}
-                  </p>
-                </div>
-              </div>
-
-              {/* Teams */}
-              <div className="flex items-center justify-center gap-8 mt-auto pt-6">
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={getTeamLogo(liveMatch.teamA)}
-                    alt={TEAM_SHORT_NAMES[liveMatch.teamA]}
-                    className="size-16 object-contain drop-shadow-lg bg-white rounded-full p-1.5 border border-white/20"
+          return (
+            <div key={match.id} className="space-y-5 border-b border-slate-200 dark:border-primary/10 pb-10 last:border-0 last:pb-0">
+              {/* Match Hero Card */}
+              <div className="px-4">
+                <div className="card-base !p-0 overflow-hidden relative border-0 shadow-xl">
+                  {/* Dark gradient background */}
+                  <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900" />
+                  <div
+                    className="absolute inset-0 opacity-15 pointer-events-none z-[1]"
+                    style={{
+                      background:
+                        "radial-gradient(circle at 30% 50%, var(--color-primary), transparent 60%), radial-gradient(circle at 70% 50%, var(--color-primary), transparent 60%)",
+                    }}
                   />
-                  <span className="text-white font-bold text-sm">
-                    {TEAM_SHORT_NAMES[liveMatch.teamA] || liveMatch.teamA}
-                  </span>
-                </div>
 
-                <span className="text-xl font-black text-slate-500 italic">
-                  VS
-                </span>
+                  <div className="relative z-20 p-6 flex flex-col min-h-[180px]">
+                    {/* Top row: LIVE badge + venue */}
+                    <div className="flex justify-between items-start">
+                      <span className="tag-live backdrop-blur-sm bg-red-500/40 text-red-100 border border-red-500/50">
+                        <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" />{" "}
+                        LIVE
+                      </span>
+                      <div className="text-right">
+                        <p className="text-[10px] text-slate-400 uppercase">
+                          {match.venue}
+                        </p>
+                        <p className="text-[10px] text-slate-500">
+                          {match.date} • {match.time}
+                        </p>
+                      </div>
+                    </div>
 
-                <div className="flex flex-col items-center gap-2">
-                  <img
-                    src={getTeamLogo(liveMatch.teamB)}
-                    alt={TEAM_SHORT_NAMES[liveMatch.teamB]}
-                    className="size-16 object-contain drop-shadow-lg bg-white rounded-full p-1.5 border border-white/20"
-                  />
-                  <span className="text-white font-bold text-sm">
-                    {TEAM_SHORT_NAMES[liveMatch.teamB] || liveMatch.teamB}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bet Distribution Bar */}
-        <div className="px-4">
-          <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4">
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center gap-2">
-                <img
-                  src={getTeamLogo(liveMatch.teamA)}
-                  alt=""
-                  className="size-5 rounded-full object-contain bg-white"
-                />
-                <span className="text-xs font-bold text-primary">
-                  {TEAM_SHORT_NAMES[liveMatch.teamA]} ({betStats.teamAPercent}%)
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                  ({betStats.teamBPercent}%) {TEAM_SHORT_NAMES[liveMatch.teamB]}
-                </span>
-                <img
-                  src={getTeamLogo(liveMatch.teamB)}
-                  alt=""
-                  className="size-5 rounded-full object-contain bg-white"
-                />
-              </div>
-            </div>
-            <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex">
-              <div
-                className="bg-primary h-full rounded-l-full transition-all duration-500"
-                style={{ width: `${betStats.teamAPercent}%` }}
-              />
-              <div
-                className="bg-slate-400 h-full rounded-r-full transition-all duration-500"
-                style={{ width: `${betStats.teamBPercent}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-2">
-              <span className="text-[10px] text-slate-500">
-                {betStats.teamAPool?.toLocaleString()} pts
-              </span>
-              <span className="text-[10px] text-slate-500">
-                {betStats.teamBPool?.toLocaleString()} pts
-              </span>
-            </div>
-            <p className="text-[10px] text-center text-slate-500 mt-2 uppercase tracking-wider">
-              Community Bet Distribution •{" "}
-              {betStats.totalPool?.toLocaleString()} pts total
-            </p>
-          </div>
-        </div>
-
-        {/* Live Predictions Table */}
-        <section className="px-4">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-              Live Predictions
-            </h4>
-            <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold">
-              {betStats.totalBets} {betStats.totalBets === 1 ? "Bet" : "Bets"}
-            </span>
-          </div>
-
-          {bets.length === 0 ? (
-            <div className="text-center py-8 opacity-50">
-              <span className="material-symbols-outlined text-3xl mb-2">
-                casino
-              </span>
-              <p className="text-sm">No bets placed yet</p>
-            </div>
-          ) : (
-            <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 bg-slate-50 dark:bg-primary/10 border-b border-slate-200 dark:border-primary/10 p-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
-                <div className="col-span-5">Player</div>
-                <div className="col-span-4 text-center">Pick</div>
-                <div className="col-span-3 text-right">Pot</div>
-              </div>
-
-              {/* Bet Rows */}
-              <div className="flex flex-col divide-y divide-slate-100 dark:divide-primary/10">
-                {bets.map((bet) => {
-                  const userName = betUsers[bet.userId]?.displayName || "...";
-                  const isMe = user?.uid === bet.userId;
-
-                  return (
-                    <div
-                      key={bet.id}
-                      className={`grid grid-cols-12 p-3 items-center ${isMe ? "bg-primary/10" : "hover:bg-primary/5"} transition-colors`}
-                    >
-                      {/* Player */}
-                      <div className="col-span-5 flex items-center gap-2 min-w-0">
-                        {renderUserAvatar(bet.userId)}
-                        <span
-                          className={`text-sm font-medium truncate ${isMe ? "text-primary font-bold" : ""}`}
-                        >
-                          {isMe ? "You" : userName}
+                    {/* Teams */}
+                    <div className="flex items-center justify-center gap-8 mt-auto pt-6">
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src={getTeamLogo(match.teamA)}
+                          alt={TEAM_SHORT_NAMES[match.teamA]}
+                          className="size-16 object-contain drop-shadow-lg bg-white rounded-full p-1.5 border border-white/20"
+                        />
+                        <span className="text-white font-bold text-sm">
+                          {TEAM_SHORT_NAMES[match.teamA] || match.teamA}
                         </span>
                       </div>
 
-                      {/* Pick — team logo */}
-                      <div className="col-span-4 flex justify-center">
-                        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-primary/10 px-2 py-1 rounded-full">
-                          <img
-                            src={getTeamLogo(bet.team)}
-                            alt={TEAM_SHORT_NAMES[bet.team]}
-                            className="size-5 rounded-full object-contain bg-white"
-                          />
-                          <span className="text-[10px] font-bold">
-                            {TEAM_SHORT_NAMES[bet.team] || bet.team}
-                          </span>
-                        </div>
-                      </div>
+                      <span className="text-xl font-black text-slate-500 italic">
+                        VS
+                      </span>
 
-                      {/* Pot */}
-                      <div className="col-span-3 text-right">
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                          {bet.points.toLocaleString()}
-                        </span>
-                        <span className="text-[10px] text-slate-500 ml-0.5">
-                          pts
+                      <div className="flex flex-col items-center gap-2">
+                        <img
+                          src={getTeamLogo(match.teamB)}
+                          alt={TEAM_SHORT_NAMES[match.teamB]}
+                          className="size-16 object-contain drop-shadow-lg bg-white rounded-full p-1.5 border border-white/20"
+                        />
+                        <span className="text-white font-bold text-sm">
+                          {TEAM_SHORT_NAMES[match.teamB] || match.teamB}
                         </span>
                       </div>
                     </div>
-                  );
-                })}
+                  </div>
+                </div>
               </div>
+
+              {/* Bet Distribution Bar */}
+              <div className="px-4">
+                <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl p-4 shadow-sm">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={getTeamLogo(match.teamA)}
+                        alt=""
+                        className="size-5 rounded-full object-contain bg-white"
+                      />
+                      <span className="text-xs font-bold text-primary">
+                        {TEAM_SHORT_NAMES[match.teamA]} ({betStats.teamAPercent}%)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        ({betStats.teamBPercent}%) {TEAM_SHORT_NAMES[match.teamB]}
+                      </span>
+                      <img
+                        src={getTeamLogo(match.teamB)}
+                        alt=""
+                        className="size-5 rounded-full object-contain bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex">
+                    <div
+                      className="bg-primary h-full rounded-l-full transition-all duration-500"
+                      style={{ width: `${betStats.teamAPercent}%` }}
+                    />
+                    <div
+                      className="bg-slate-400 h-full rounded-r-full transition-all duration-500"
+                      style={{ width: `${betStats.teamBPercent}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between mt-2">
+                    <span className="text-[10px] text-slate-500">
+                      {betStats.teamAPool?.toLocaleString()} pts
+                    </span>
+                    <span className="text-[10px] text-slate-500">
+                      {betStats.teamBPool?.toLocaleString()} pts
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-center text-slate-500 mt-2 uppercase tracking-wider">
+                    Community Bet Distribution •{" "}
+                    {betStats.totalPool?.toLocaleString()} pts total
+                  </p>
+                </div>
+              </div>
+
+              {/* Live Predictions Table */}
+              <section className="px-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                    Live Predictions
+                  </h4>
+                  <span className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold">
+                    {betStats.totalBets} {betStats.totalBets === 1 ? "Bet" : "Bets"}
+                  </span>
+                </div>
+
+                {matchBets.length === 0 ? (
+                  <div className="text-center py-8 opacity-50 bg-white dark:bg-primary/5 rounded-xl border border-dashed border-slate-300 dark:border-primary/20">
+                    <span className="material-symbols-outlined text-3xl mb-2">
+                      casino
+                    </span>
+                    <p className="text-sm">No bets placed yet</p>
+                  </div>
+                ) : (
+                  <div className="bg-white dark:bg-primary/5 border border-slate-200 dark:border-primary/10 rounded-xl overflow-hidden shadow-sm">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 bg-slate-50 dark:bg-primary/10 border-b border-slate-200 dark:border-primary/10 p-3 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                      <div className="col-span-5">Player</div>
+                      <div className="col-span-4 text-center">Pick</div>
+                      <div className="col-span-3 text-right">Pot</div>
+                    </div>
+
+                    {/* Bet Rows */}
+                    <div className="flex flex-col divide-y divide-slate-100 dark:divide-primary/10">
+                      {matchBets.map((bet) => {
+                        const userName = betUsers[bet.userId]?.displayName || "...";
+                        const isMe = user?.uid === bet.userId;
+
+                        return (
+                          <div
+                            key={bet.id}
+                            className={`grid grid-cols-12 p-3 items-center ${isMe ? "bg-primary/10" : "hover:bg-primary/5"} transition-colors`}
+                          >
+                            {/* Player */}
+                            <div className="col-span-5 flex items-center gap-2 min-w-0">
+                              {renderUserAvatar(bet.userId)}
+                              <span
+                                className={`text-sm font-medium truncate ${isMe ? "text-primary font-bold" : ""}`}
+                              >
+                                {isMe ? "You" : userName}
+                              </span>
+                            </div>
+
+                            {/* Pick — team logo */}
+                            <div className="col-span-4 flex justify-center">
+                              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-primary/10 px-2 py-1 rounded-full">
+                                <img
+                                  src={getTeamLogo(bet.team)}
+                                  alt={TEAM_SHORT_NAMES[bet.team]}
+                                  className="size-5 rounded-full object-contain bg-white"
+                                />
+                                <span className="text-[10px] font-bold">
+                                  {TEAM_SHORT_NAMES[bet.team] || bet.team}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Pot */}
+                            <div className="col-span-3 text-right flex flex-col items-end">
+                              <div className="flex items-baseline gap-0.5">
+                                <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                  {bet.points.toLocaleString()}
+                                </span>
+                                <span className="text-[10px] text-slate-500">
+                                  pts
+                                </span>
+                              </div>
+                              {(() => {
+                                const isTeamA = bet.team.toString() === match.teamA.toString();
+                                const teamPool = isTeamA ? betStats.teamAPool : betStats.teamBPool;
+                                const oppositePool = isTeamA ? betStats.teamBPool : betStats.teamAPool;
+                                
+                                if (teamPool > 0 && oppositePool > 0) {
+                                  const potentialProfit = Math.floor((bet.points / teamPool) * oppositePool);
+                                  return (
+                                    <span className="text-[10px] font-bold text-emerald-500 whitespace-nowrap">
+                                      +{potentialProfit.toLocaleString()}
+                                    </span>
+                                  );
+                                }
+                                return null;
+                              })()}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </section>
             </div>
-          )}
-        </section>
+          );
+        })}
       </main>
     </div>
   );
